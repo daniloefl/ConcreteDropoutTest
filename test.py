@@ -2,6 +2,7 @@ import tensorflow as tf
 import numpy as np
 from utils import *
 import gc
+from scipy.ndimage.filters import gaussian_filter
 
 from sklearn.datasets import make_moons
 x_train, y_train = make_moons(n_samples = 5000, noise = 0.20)
@@ -82,15 +83,19 @@ def plot_contour(model, x, y):
     inputs = inputs.astype(np.float32)
 
     pred_m, pred_s = getMeanStd(model, inputs, Npred = 50)
+    pred_m_2d = pred_m.reshape( (-1, bx.shape[1]) )
+    pred_s_2d = pred_s.reshape( (-1, bx.shape[1]) )
 
-    cbar = [None, None]
+    # if one wants to smoothen the results
+    #for data in [pred_m_2d, pred_s_2d]:
+    #    data = gaussian_filter(data, 0.1)
 
     fig, ax = plt.subplots(nrows = 2, ncols = 1, sharex = True, figsize = (10, 8))
     cmap = sns.diverging_palette(250, 12, s=85, l=25, as_cmap=True)
-    contour_s = ax[0].contourf(bx, by, pred_s.reshape((-1, bx.shape[1])), cmap = cmap)
+    contour_s = ax[0].contourf(bx, by, pred_s_2d, cmap = cmap)
     cbar_s = plt.colorbar(contour_s, ax = ax[0])
     cbar_s.ax.set_ylabel('Unc.')
-    contour_m = ax[1].contourf(bx, by, pred_m.reshape((-1, bx.shape[1])), cmap = cmap)
+    contour_m = ax[1].contourf(bx, by, pred_m_2d, cmap = cmap)
     cbar_m = plt.colorbar(contour_m, ax = ax[1])
     cbar_m.ax.set_ylabel('Mean')
     for a in [ax[0], ax[1]]:
